@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: praveentravels-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: praveentravels-backend
+  template:
+    metadata:
+      labels:
+        app: praveentravels-backend
+    spec:
+      containers:
+      - name: praveentravels-backend
+        image: naidu289/praveentravels-backend:latest
+        ports:
+        - containerPort: 3000
