@@ -1,43 +1,83 @@
 pipeline {
     agent any
+
     environment {
-        DOCKER_IMAGE = 'your-docker-image'
-        DOCKER_TAG = 'latest'
+        DOCKER_IMAGE = "naidu289/praveentravells"
+        DOCKER_TAG = "latest"
+        DOCKER_REGISTRY = "https://hub.docker.com"
+        KUBE_CONFIG = "/path/to/kube/config"
+        SONARQUBE_URL = "http://your-sonarqube-server"
+        SONARQUBE_CREDENTIALS = "sonarqube-credentials"
     }
+
     stages {
         stage('Checkout') {
             steps {
-                checkout scm
+                git 'https://github.com/Gppsv143/praveentravells.git'
             }
         }
-        stage('Build') {
+
+        stage('Maven Build') {
             steps {
                 script {
-                    sh 'npm install'
-                    sh 'docker build -t $DOCKER_IMAGE:$DOCKER_TAG .'
+                    sh 'mvn clean install'
                 }
             }
         }
-        stage('Test') {
+
+        stage('SonarQube Analysis') {
             steps {
                 script {
-                    sh 'npm test'  // Adjust based on your test framework
+                    withSonarQubeEnv('SonarQube') {
+                        sh 'mvn sonar:sonar'
+                    }
                 }
             }
         }
-        stage('SonarQube') {
+
+        stage('Build Docker Image') {
             steps {
                 script {
-                    sh 'mvn sonar:sonar'  // If using Maven; adjust if necessary
+                    sh 'docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} .'
                 }
             }
         }
-        stage('Deploy') {
+
+        stage('Push Docker Image to Docker Hub') {
             steps {
                 script {
-                    sh 'kubectl apply -f k8s/deployment.yaml'
+                    docker.withRegistry(DOCKER_REGISTRY, 'docker-hub-credentials') {
+                        sh 'docker push ${DOCKER_IMAGE}:${DOCKER_TAG}'
+                    }
+                }
+            }
+        }
+
+        stage('Deploy to Kubernetes') {
+            steps {
+                script {
+                    sh "kubectl --kubeconfig=${KUBE_CONFIG} apply -f k8s/deployment.yaml"
+                    sh "kubectl --kubeconfig=${KUBE_CONFIG} apply -f k8s/service.yaml"
+                }
+            }
+        }
+
+        stage('ArgoCD Sync') {
+            steps {
+                script {
+                    sh 'argocd app sync praveentravells-app'
                 }
             }
         }
     }
+
+    post {
+        success {
+            echo 'Deployment completed successfully!'
+        }
+        failure {
+            echo 'There was an error during the build or deployment.'
+        }
+    }
 }
+
