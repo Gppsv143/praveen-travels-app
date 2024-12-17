@@ -11,34 +11,46 @@
 
     <name>Praveen Travels Backend</name>
 
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.7.6</version> <!-- Replace with your required Spring Boot version -->
+        <relativePath/> <!-- Lookup parent from repository -->
+    </parent>
+
     <properties>
+        <java.version>17</java.version> <!-- Update to your required Java version -->
         <docker.image.prefix>naidu289/praveentravells</docker.image.prefix>
     </properties>
 
     <dependencies>
-        <!-- Add your dependencies here -->
+        <!-- Spring Boot Starter Web -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
+
         <!-- Add other dependencies as needed -->
     </dependencies>
 
     <build>
         <plugins>
-            <!-- Docker Maven Plugin -->
+            <!-- Spring Boot Maven Plugin -->
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-docker-plugin</artifactId>
-                <version>0.37.0</version>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>build</goal>
-                            <goal>push</goal>
-                        </goals>
-                    </execution>
-                </executions>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+
+            <!-- Docker Maven Plugin (Jib) -->
+            <plugin>
+                <groupId>com.google.cloud.tools</groupId>
+                <artifactId>jib-maven-plugin</artifactId>
+                <version>3.4.0</version>
+                <configuration>
+                    <to>
+                        <image>${docker.image.prefix}:${project.version}</image>
+                    </to>
+                </configuration>
             </plugin>
         </plugins>
     </build>
